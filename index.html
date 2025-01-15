@@ -37,33 +37,32 @@
     <script>
         function processText() {
             const inputText = document.getElementById('inputText').value;
-            const words = inputText.split(/\s+/);
+            const lines = inputText.split('\n');
 
-            // Contar a frequência de cada palavra
             const wordConnections = {};
-            words.forEach(word => {
-                const cleanedWord = word.replace(/[.,!?()]/g, '').toLowerCase();
-                if (cleanedWord.length > 2) {
-                    wordConnections[cleanedWord] = (wordConnections[cleanedWord] || 0) + 1;
-                }
+            lines.forEach(line => {
+                const words = line.split(/\s+/);
+                words.forEach(word => {
+                    const cleanedWord = word.replace(/[.,!?()]/g, '').toLowerCase();
+                    if (cleanedWord.length > 2) {
+                        wordConnections[cleanedWord] = (wordConnections[cleanedWord] || 0) + 1;
+                    }
+                });
             });
 
-            // Ordenar palavras por frequência
             const sortedWords = Object.entries(wordConnections).sort((a, b) => b[1] - a[1]);
-
-            // Calcular o top 10% das palavras mais frequentes
             const top10PercentCount = Math.max(1, Math.ceil(sortedWords.length * 0.1));
             const topWords = new Set(sortedWords.slice(0, top10PercentCount).map(entry => entry[0]));
 
-            // Construir o texto formatado com destaque no padrão Markdown
-            const formattedText = words.map(word => {
-                const cleanedWord = word.replace(/[.,!?()]/g, '').toLowerCase();
-                return topWords.has(cleanedWord) 
-                    ? `**${word}**` 
-                    : word;
-            }).join(' ');
+            const formattedText = lines.map(line => {
+                return line.split(/\s+/).map(word => {
+                    const cleanedWord = word.replace(/[.,!?()]/g, '').toLowerCase();
+                    return topWords.has(cleanedWord) 
+                        ? `**${word}**` 
+                        : word;
+                }).join(' ');
+            }).join('\n');
 
-            // Exibir o texto formatado
             document.getElementById('outputText').textContent = formattedText;
         }
 
