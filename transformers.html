@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Text Highlighter</title>
-    <script src="https://cdn.jsdelivr.net/npm/@xenova/transformers"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@xenova/transformers/dist/transformers.min.js"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -35,20 +35,23 @@
 
     <script>
         async function loadModel() {
-            const model = await transformers.AutoModelForTokenClassification.from_pretrained('Xenova/distilbert-base-multilingual-cased-ner-hrl');
-            const tokenizer = await transformers.AutoTokenizer.from_pretrained('Xenova/distilbert-base-multilingual-cased-ner-hrl');
+            // Carregar modelo e tokenizador usando a biblioteca Transformers.js
+            const model = await window.transformers.AutoModelForTokenClassification.from_pretrained('Xenova/distilbert-base-multilingual-cased-ner-hrl');
+            const tokenizer = await window.transformers.AutoTokenizer.from_pretrained('Xenova/distilbert-base-multilingual-cased-ner-hrl');
             return { model, tokenizer };
         }
 
         async function highlightText(text, model, tokenizer) {
-            const inputs = tokenizer(text, { return_tensors: 'tf' });
+            // Tokenização e inferência
+            const inputs = tokenizer(text, { return_tensors: 'pt' });
             const outputs = model(inputs);
             const scores = outputs.logits.softmax(-1);
             const predictions = Array.from(scores.argmax(-1).dataSync());
 
+            // Processar os tokens para destaque
             const tokens = tokenizer.convert_ids_to_tokens(inputs.input_ids[0]);
             const highlighted = tokens.map((token, idx) => {
-                const isImportant = predictions[idx] !== 0; // Change condition based on model's label mapping
+                const isImportant = predictions[idx] !== 0; // Condição baseada no modelo
                 if (isImportant) {
                     return `<span class="highlight">${token}</span>`;
                 } else {
@@ -56,7 +59,7 @@
                 }
             });
 
-            return highlighted.join(' ').replace(/ ##/g, ''); // Remove subword markers
+            return highlighted.join(' ').replace(/ ##/g, ''); // Remover marcadores de subpalavras
         }
 
         document.getElementById('processText').addEventListener('click', async () => {
