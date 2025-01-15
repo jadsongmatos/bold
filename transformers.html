@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Text Highlighter</title>
+    <script src="https://cdn.jsdelivr.net/npm/@xenova/transformers"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        textarea {
+            width: 100%;
+            height: 150px;
+            margin-bottom: 10px;
+        }
+        .output {
+            white-space: pre-wrap;
+            background-color: #f4f4f4;
+            padding: 10px;
+            border: 1px solid #ccc;
+        }
+        .highlight {
+            font-weight: bold;
+            color: red;
+        }
+    </style>
+</head>
+<body>
+    <h1>Text Highlighter</h1>
+    <textarea id="inputText" placeholder="Digite ou cole o texto aqui..."></textarea>
+    <button id="processText">Processar Texto</button>
+    <div class="output" id="outputText"></div>
+
+    <script>
+        async function loadModel() {
+            const model = await transformers.AutoModelForTokenClassification.from_pretrained('Xenova/distilbert-base-multilingual-cased-ner-hrl');
+            const tokenizer = await transformers.AutoTokenizer.from_pretrained('Xenova/distilbert-base-multilingual-cased-ner-hrl');
+            return { model, tokenizer };
+        }
+
+        async function highlightText(text, model, tokenizer) {
+            const inputs = tokenizer(text, { return_tensors: 'tf' });
+            const outputs = model(inputs);
+            const scores = outputs.logits.softmax(-1);
+            const predictions = Array.from(scores.argmax(-1).dataSync());
+
+            const tokens = tokenizer.convert_ids_to_tokens(inputs.input_ids[0]);
+            const highlighted = tokens.map((token, idx) => {
+                const isImportant = predictions[idx] !== 0; // Change condition based on model's label mapping
+                if (isImportant) {
+                    return `<span class="highlight">${token}</span>`;
+                } else {
+                    return token;
+                }
+            });
+
+            return highlighted.join(' ').replace(/ ##/g, ''); // Remove subword markers
+        }
+
+        document.getElementById('processText').addEventListener('click', async () => {
+            const text = document.getElementById('inputText').value;
+            const outputElement = document.getElementById('outputText');
+
+            outputElement.textContent = 'Processando...';
+            try {
+                const { model, tokenizer } = await loadModel();
+                const highlightedText = await highlightText(text, model, tokenizer);
+                outputElement.innerHTML = highlightedText;
+            } catch (error) {
+                outputElement.textContent = 'Erro ao processar o texto: ' + error.message;
+            }
+        });
+    </script>
+</body>
+</html>
