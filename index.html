@@ -20,19 +20,17 @@
             padding: 10px;
             border: 1px solid #ccc;
             background: #f9f9f9;
-        }
-        .highlight {
-            font-weight: bold;
-            color: red;
+            white-space: pre-wrap;
         }
     </style>
 </head>
 <body>
     <h1>Processador de Texto</h1>
-    <p>Digite ou cole o texto abaixo e clique em "Processar". As palavras mais frequentes serão destacadas.</p>
+    <p>Digite ou cole o texto abaixo e clique em "Processar". As palavras mais frequentes serão destacadas no formato Markdown.</p>
 
     <textarea id="inputText" placeholder="Digite seu texto aqui..."></textarea>
     <button onclick="processText()">Processar</button>
+    <button onclick="copyText()">Copiar Texto</button>
 
     <div class="output" id="outputText"></div>
 
@@ -57,16 +55,25 @@
             const top10PercentCount = Math.max(1, Math.ceil(sortedWords.length * 0.1));
             const topWords = new Set(sortedWords.slice(0, top10PercentCount).map(entry => entry[0]));
 
-            // Construir o texto formatado com destaque
+            // Construir o texto formatado com destaque no padrão Markdown
             const formattedText = words.map(word => {
                 const cleanedWord = word.replace(/[.,!?()]/g, '').toLowerCase();
                 return topWords.has(cleanedWord) 
-                    ? `<span class='highlight'>${word}</span>` 
+                    ? `**${word}**` 
                     : word;
             }).join(' ');
 
             // Exibir o texto formatado
-            document.getElementById('outputText').innerHTML = formattedText;
+            document.getElementById('outputText').textContent = formattedText;
+        }
+
+        function copyText() {
+            const outputText = document.getElementById('outputText').textContent;
+            navigator.clipboard.writeText(outputText).then(() => {
+                alert('Texto copiado para a área de transferência!');
+            }).catch(err => {
+                alert('Erro ao copiar o texto: ' + err);
+            });
         }
     </script>
 </body>
