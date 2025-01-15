@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Processador de Texto</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            line-height: 1.6;
+        }
+        textarea {
+            width: 100%;
+            height: 150px;
+            margin-bottom: 10px;
+        }
+        .output {
+            margin-top: 20px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            background: #f9f9f9;
+        }
+        .highlight {
+            font-weight: bold;
+            color: red;
+        }
+    </style>
+</head>
+<body>
+    <h1>Processador de Texto</h1>
+    <p>Digite ou cole o texto abaixo e clique em "Processar". As palavras mais frequentes serão destacadas.</p>
+
+    <textarea id="inputText" placeholder="Digite seu texto aqui..."></textarea>
+    <button onclick="processText()">Processar</button>
+
+    <div class="output" id="outputText"></div>
+
+    <script>
+        function processText() {
+            const inputText = document.getElementById('inputText').value;
+            const words = inputText.split(/\s+/);
+
+            // Contar a frequência de cada palavra
+            const wordConnections = {};
+            words.forEach(word => {
+                const cleanedWord = word.replace(/[.,!?()]/g, '').toLowerCase();
+                if (cleanedWord.length > 2) {
+                    wordConnections[cleanedWord] = (wordConnections[cleanedWord] || 0) + 1;
+                }
+            });
+
+            // Ordenar palavras por frequência
+            const sortedWords = Object.entries(wordConnections).sort((a, b) => b[1] - a[1]);
+
+            // Calcular o top 10% das palavras mais frequentes
+            const top10PercentCount = Math.max(1, Math.ceil(sortedWords.length * 0.1));
+            const topWords = new Set(sortedWords.slice(0, top10PercentCount).map(entry => entry[0]));
+
+            // Construir o texto formatado com destaque
+            const formattedText = words.map(word => {
+                const cleanedWord = word.replace(/[.,!?()]/g, '').toLowerCase();
+                return topWords.has(cleanedWord) 
+                    ? `<span class='highlight'>${word}</span>` 
+                    : word;
+            }).join(' ');
+
+            // Exibir o texto formatado
+            document.getElementById('outputText').innerHTML = formattedText;
+        }
+    </script>
+</body>
+</html>
